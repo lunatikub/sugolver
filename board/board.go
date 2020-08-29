@@ -1,5 +1,7 @@
 package board
 
+import "fmt"
+
 // Board constants
 const (
 	NrLine      = 9
@@ -38,12 +40,33 @@ type Board struct {
 func (b *Board) Set(y uint, x uint, v uint, t uint) {
 	b.cells[y][x].v = v
 	b.cells[y][x].t = t
-	b.lines[y][v] = true
-	b.cols[x][v] = true
-	b.blocks[getBlockID(y, x)][v] = true
+	b.lines[y][v-1] = true
+	b.cols[x][v-1] = true
+	b.blocks[getBlockID(y, x)][v-1] = true
 }
 
 // Get the value of a cell
 func (b *Board) Get(y uint, x uint) uint {
 	return b.cells[y][x].v
+}
+
+// Init the board with initial values
+func (b *Board) Init(initialValues *[9][9]uint) {
+	for y, line := range initialValues {
+		for x, v := range line {
+			if v != 0 {
+				b.Set(uint(y), uint(x), v, Initial)
+			}
+		}
+	}
+}
+
+// Dump the playing sudoku board
+func (b *Board) Dump() {
+	for _, line := range b.cells {
+		for _, cell := range line {
+			fmt.Print(cell.v, " ")
+		}
+		fmt.Println()
+	}
 }
