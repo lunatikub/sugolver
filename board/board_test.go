@@ -24,15 +24,15 @@ func testSetGet(t *testing.T, b *Board, y uint, x uint, v uint) {
 	if res != v {
 		t.Errorf("Set/Get is incorrect, got: %d, expected: %d", res, v)
 	}
-	if b.lines[y][v] != true {
-		t.Errorf("Set is incorrect, lines[%d][%d] is not set", y, v)
+	if b.lines[y][v-1] != true {
+		t.Errorf("Set of val %d is incorrect for the line:%d", v, y)
 	}
-	if b.cols[x][v] != true {
-		t.Errorf("Set is incorrect, cols[%d][%d] is not set", x, v)
+	if b.cols[x][v-1] != true {
+		t.Errorf("Set of val %d is incorrect for the col:%d", v, x)
 	}
 	blockID := getBlockID(y, x)
-	if b.blocks[blockID][v] != true {
-		t.Errorf("Set is incorrect, blocks[%d][%d] is not set", blockID, v)
+	if b.blocks[blockID][v-1] != true {
+		t.Errorf("Set of val %d is incorrect for the block:%d", v, blockID)
 	}
 }
 
