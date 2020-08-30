@@ -1,6 +1,6 @@
 package main
 
-import board "github.com/lunatikub/sugolver/board"
+import solver "github.com/lunatikub/sugolver/solver"
 
 func main() {
 
@@ -16,7 +16,7 @@ func main() {
 		{0, 3, 4, 0, 5, 0, 0, 0, 7},
 	}
 
-	var b board.Board
-	b.Init(&easySudoku)
-	b.Dump()
+	var s solver.Solver
+	s.B.Init(&easySudoku)
+	s.B.Dump()
 }

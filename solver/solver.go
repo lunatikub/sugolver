@@ -1,4 +1,4 @@
-package board
+package solver
 
 import (
 	"fmt"
@@ -6,42 +6,45 @@ import (
 	"github.com/fatih/color"
 )
 
-// Board constants
+// Sudoku constants
 const (
-	NrLine      = 9
-	NrCol       = 9
-	NrBlock     = 9
-	NrVal       = 9
-	NrBlockLine = 3
-	NrBlockCol  = 3
+	nrLine      = 9
+	nrCol       = 9
+	nrBlock     = 9
+	nrVal       = 9
+	nrBlockLine = 3
+	nrBlockCol  = 3
 )
 
 // Enumeration of cell type
 const (
-	Empty = iota
-	Initial
+	empty = iota
+	initial
 )
 
-// Cell of a board
-type Cell struct {
+type cell struct {
 	v uint // value of the cell
 	t uint // type of the cell
 }
 
-// Board Playing sudoku
+// Board playing 9x9 sudoku
 type Board struct {
-	cells  [NrCol][NrLine]Cell
-	lines  [NrLine][NrVal]bool  // lines values flag
-	cols   [NrCol][NrVal]bool   // cols values flag
-	blocks [NrBlock][NrVal]bool // blocks values flag
+	cells  [nrCol][nrLine]cell
+	lines  [nrLine][nrVal]bool  // lines value flags
+	cols   [nrCol][nrVal]bool   // cols value flags
+	blocks [nrBlock][nrVal]bool // block value flags
+}
+
+// Solver resolve a suduko playing 9x9 board
+type Solver struct {
+	B Board
 }
 
 func getBlockID(y uint, x uint) uint {
-	return x/NrBlockCol + (y/NrBlockLine)*NrBlockCol
+	return x/nrBlockCol + (y/nrBlockLine)*nrBlockCol
 }
 
-// Set the value and the type of a cell
-func (b *Board) Set(y uint, x uint, v uint, t uint) {
+func (b *Board) set(y uint, x uint, v uint, t uint) {
 	b.cells[y][x].v = v
 	b.cells[y][x].t = t
 	b.lines[y][v-1] = true
@@ -49,17 +52,12 @@ func (b *Board) Set(y uint, x uint, v uint, t uint) {
 	b.blocks[getBlockID(y, x)][v-1] = true
 }
 
-// Get the value of a cell
-func (b *Board) Get(y uint, x uint) uint {
-	return b.cells[y][x].v
-}
-
-// Init the board with initial values
+// Init the board with the initial values
 func (b *Board) Init(initialValues *[9][9]uint) {
 	for y, line := range initialValues {
 		for x, v := range line {
 			if v != 0 {
-				b.Set(uint(y), uint(x), v, Initial)
+				b.set(uint(y), uint(x), v, initial)
 			}
 		}
 	}

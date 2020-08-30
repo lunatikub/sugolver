@@ -1,4 +1,4 @@
-package board
+package solver
 
 import "testing"
 
@@ -18,9 +18,9 @@ func TestBlockID(t *testing.T) {
 	testBlockID(t, 8, 4, 7)
 }
 
-func testSetGet(t *testing.T, b *Board, y uint, x uint, v uint) {
-	b.Set(y, x, v, Initial)
-	res := b.Get(y, x)
+func testSet(t *testing.T, b *Board, y uint, x uint, v uint) {
+	b.set(y, x, v, initial)
+	res := b.cells[y][x].v
 	if res != v {
 		t.Errorf("Set/Get is incorrect, got: %d, expected: %d", res, v)
 	}
@@ -36,9 +36,9 @@ func testSetGet(t *testing.T, b *Board, y uint, x uint, v uint) {
 	}
 }
 
-func TestSetGet(t *testing.T) {
+func TestSet(t *testing.T) {
 	var b Board
-	testSetGet(t, &b, 3, 3, 1)
-	testSetGet(t, &b, 6, 5, 2)
-	testSetGet(t, &b, 3, 3, 2)
+	testSet(t, &b, 3, 3, 1)
+	testSet(t, &b, 6, 5, 2)
+	testSet(t, &b, 3, 3, 2)
 }
