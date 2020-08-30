@@ -1,6 +1,10 @@
 package board
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/fatih/color"
+)
 
 // Board constants
 const (
@@ -11,10 +15,6 @@ const (
 	NrBlockLine = 3
 	NrBlockCol  = 3
 )
-
-func getBlockID(y uint, x uint) uint {
-	return x/NrBlockCol + (y/NrBlockLine)*NrBlockCol
-}
 
 // Enumeration of cell type
 const (
@@ -34,6 +34,10 @@ type Board struct {
 	lines  [NrLine][NrVal]bool  // lines values flag
 	cols   [NrCol][NrVal]bool   // cols values flag
 	blocks [NrBlock][NrVal]bool // blocks values flag
+}
+
+func getBlockID(y uint, x uint) uint {
+	return x/NrBlockCol + (y/NrBlockLine)*NrBlockCol
 }
 
 // Set the value and the type of a cell
@@ -63,10 +67,23 @@ func (b *Board) Init(initialValues *[9][9]uint) {
 
 // Dump the playing sudoku board
 func (b *Board) Dump() {
-	for _, line := range b.cells {
-		for _, cell := range line {
-			fmt.Print(cell.v, " ")
+	red := color.New(color.FgRed)
+
+	for y, line := range b.cells {
+		if y%3 == 0 {
+			fmt.Println("-------------------------")
 		}
-		fmt.Println()
+		for x, cell := range line {
+			if x%3 == 0 {
+				fmt.Print("| ")
+			}
+			if cell.v != 0 {
+				red.Print(cell.v, " ")
+			} else {
+				fmt.Print(". ")
+			}
+		}
+		fmt.Println("|")
 	}
+	fmt.Println("-------------------------")
 }
