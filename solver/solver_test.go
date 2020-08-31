@@ -2,8 +2,8 @@ package solver
 
 import "testing"
 
-func testBlockID(t *testing.T, y uint, x uint, blockIDExpected uint) {
-	var blockID uint
+func testBlockID(t *testing.T, y int, x int, blockIDExpected int) {
+	var blockID int
 
 	blockID = getBlockID(y, x)
 	if blockID != blockIDExpected {
@@ -18,9 +18,9 @@ func TestBlockID(t *testing.T) {
 	testBlockID(t, 8, 4, 7)
 }
 
-func testSet(t *testing.T, b *Board, y uint, x uint, v uint) {
-	b.set(y, x, v, initial)
-	res := b.cells[y][x].v
+func testSet(t *testing.T, b *Board, y int, x int, v int) {
+	b.set(y, x, v, initialCell)
+	res := b.cells[y][x].val
 	if res != v {
 		t.Errorf("Set/Get is incorrect, got: %d, expected: %d", res, v)
 	}
@@ -41,4 +41,21 @@ func TestSet(t *testing.T) {
 	testSet(t, &b, 3, 3, 1)
 	testSet(t, &b, 6, 5, 2)
 	testSet(t, &b, 3, 3, 2)
+}
+
+func TestIsValid(t *testing.T) {
+	var b Board
+	if b.isValidSet(0, 0, 1) == false {
+		t.Errorf("Valid set expected")
+	}
+	b.set(0, 0, 1, candidateCell)
+	if b.isValidSet(0, 1, 1) == true {
+		t.Errorf("Unvalid set expected")
+	}
+	if b.isValidSet(1, 0, 1) == true {
+		t.Errorf("Unvalid set expected")
+	}
+	if b.isValidSet(1, 1, 1) == true {
+		t.Errorf("Unvalid set expected")
+	}
 }

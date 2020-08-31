@@ -1,10 +1,10 @@
 package main
 
-import solver "github.com/lunatikub/sugolver/solver"
+import board "github.com/lunatikub/sugolver/solver"
 
 func main() {
 
-	var easySudoku = [9][9]uint{
+	var easySudoku = [9][9]int{
 		{8, 6, 9, 0, 0, 0, 0, 0, 4},
 		{0, 4, 0, 0, 0, 0, 0, 0, 1},
 		{0, 0, 0, 0, 7, 0, 0, 0, 0},
@@ -16,7 +16,7 @@ func main() {
 		{0, 3, 4, 0, 5, 0, 0, 0, 7},
 	}
 
-	var s solver.Solver
-	s.B.Init(&easySudoku)
-	s.B.Dump()
+	b := board.New(&easySudoku)
+	b.Dump()
+	b.Solve()
 }

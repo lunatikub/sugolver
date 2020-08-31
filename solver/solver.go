@@ -16,56 +16,115 @@ const (
 	nrBlockCol  = 3
 )
 
-// Enumeration of cell type
 const (
-	empty = iota
-	initial
+	emptyCell = iota
+	initialCell
+	candidateCell
 )
 
 type cell struct {
-	v uint // value of the cell
-	t uint // type of the cell
+	val        int // value of the cell
+	typeCell   int // type of the cell
+	candidates map[int]struct{}
 }
 
 // Board playing 9x9 sudoku
 type Board struct {
 	cells  [nrCol][nrLine]cell
-	lines  [nrLine][nrVal]bool  // lines value flags
-	cols   [nrCol][nrVal]bool   // cols value flags
-	blocks [nrBlock][nrVal]bool // block value flags
+	lines  [nrLine][nrVal]bool
+	cols   [nrCol][nrVal]bool
+	blocks [nrBlock][nrVal]bool
 }
 
-// Solver resolve a suduko playing 9x9 board
-type Solver struct {
-	B Board
-}
-
-func getBlockID(y uint, x uint) uint {
+func getBlockID(y int, x int) int {
 	return x/nrBlockCol + (y/nrBlockLine)*nrBlockCol
 }
 
-func (b *Board) set(y uint, x uint, v uint, t uint) {
-	b.cells[y][x].v = v
-	b.cells[y][x].t = t
+func (b *Board) set(y int, x int, v int, t int) {
+	b.cells[y][x].val = v
+	b.cells[y][x].typeCell = t
 	b.lines[y][v-1] = true
 	b.cols[x][v-1] = true
 	b.blocks[getBlockID(y, x)][v-1] = true
 }
 
-// Init the board with the initial values
-func (b *Board) Init(initialValues *[9][9]uint) {
-	for y, line := range initialValues {
-		for x, v := range line {
-			if v != 0 {
-				b.set(uint(y), uint(x), v, initial)
+func (b *Board) reset(y int, x int, v int) {
+	b.cells[y][x].val = 0
+	b.cells[y][x].typeCell = emptyCell
+	b.lines[y][v-1] = false
+	b.cols[x][v-1] = false
+	b.blocks[getBlockID(y, x)][v-1] = false
+}
+
+func (b *Board) isValidSet(y int, x int, v int) bool {
+	return !b.lines[y][v-1] && !b.cols[x][v-1] && !b.blocks[getBlockID(y, x)][v-1]
+}
+
+func (c *cell) setCandidate(b *Board, y int, x int) {
+	for v := 0; v < nrVal; v++ {
+		if !b.lines[y][v] && !b.cols[x][v] && !b.blocks[getBlockID(y, x)][v] {
+			c.candidates[v+1] = struct{}{}
+		}
+	}
+}
+
+// SetCandidates find the potential
+// candidates for each cell of the board
+func (b *Board) setCandidates() {
+	for y, line := range b.cells {
+		for x, cell := range line {
+			if b.cells[y][x].typeCell == emptyCell {
+				cell.setCandidate(b, y, x)
 			}
 		}
 	}
 }
 
-// Dump the playing sudoku board
+// Init the board
+func (b *Board) init(initialValues *[9][9]int) {
+	for y, line := range initialValues {
+		for x, v := range line {
+			b.cells[y][x].candidates = make(map[int]struct{})
+			if v != 0 {
+				b.set(y, x, v, initialCell)
+			}
+		}
+	}
+
+}
+
+// New Create a new board with the initial values
+func New(initValues *[9][9]int) *Board {
+	b := new(Board)
+	b.init(initValues)
+	b.setCandidates()
+	return b
+}
+
+// Solve Explore all valid possibilites for each
+// candidate of each cell to find a solution by backtracking
+func (b *Board) Solve() {
+	for y, line := range b.cells {
+		for x, cell := range line {
+			if cell.val == 0 {
+				for v := range cell.candidates {
+					if b.isValidSet(y, x, v) {
+						b.set(y, x, v, candidateCell)
+						b.Solve()
+						b.reset(y, x, v)
+					}
+				}
+				return
+			}
+		}
+	}
+	b.Dump()
+}
+
+// Dump Debug function to dunmp a sudoku board
 func (b *Board) Dump() {
 	red := color.New(color.FgRed)
+	blue := color.New(color.FgBlue)
 
 	for y, line := range b.cells {
 		if y%3 == 0 {
@@ -75,8 +134,12 @@ func (b *Board) Dump() {
 			if x%3 == 0 {
 				fmt.Print("| ")
 			}
-			if cell.v != 0 {
-				red.Print(cell.v, " ")
+			if cell.val != 0 {
+				if cell.typeCell == initialCell {
+					red.Print(cell.val, " ")
+				} else if cell.typeCell == candidateCell {
+					blue.Print(cell.val, " ")
+				}
 			} else {
 				fmt.Print(". ")
 			}
