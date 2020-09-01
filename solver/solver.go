@@ -20,6 +20,7 @@ const (
 	emptyCell = iota
 	initialCell
 	candidateCell
+	excluCell
 )
 
 type cell struct {
@@ -30,10 +31,11 @@ type cell struct {
 
 // Board playing 9x9 sudoku
 type Board struct {
-	cells  [nrCol][nrLine]cell
-	lines  [nrLine][nrVal]bool
-	cols   [nrCol][nrVal]bool
-	blocks [nrBlock][nrVal]bool
+	cells       [nrCol][nrLine]cell
+	lines       [nrLine][nrVal]bool
+	cols        [nrCol][nrVal]bool
+	blocks      [nrBlock][nrVal]bool
+	nrCandidate uint
 }
 
 func getBlockID(y int, x int) int {
@@ -64,6 +66,7 @@ func (c *cell) setCandidate(b *Board, y int, x int) {
 	for v := 0; v < nrVal; v++ {
 		if !b.lines[y][v] && !b.cols[x][v] && !b.blocks[getBlockID(y, x)][v] {
 			c.candidates[v+1] = struct{}{}
+			b.nrCandidate++
 		}
 	}
 }
@@ -101,16 +104,72 @@ func New(initValues *[9][9]int) *Board {
 	return b
 }
 
-// Solve Explore all valid possibilites for each
-// candidate of each cell to find a solution by backtracking
-func (b *Board) Solve() {
+func (b *Board) updateCandidate(y int, x int, v int) {
+	cell := b.cells[y][x]
+	if _, ok := cell.candidates[v]; ok {
+		delete(cell.candidates, v)
+		b.nrCandidate--
+	}
+}
+
+func (b *Board) updateCandidatesLine(line int, v int) {
+	for x := 0; x < nrCol; x++ {
+		b.updateCandidate(line, x, v)
+	}
+}
+
+func (b *Board) updateCandidatesCol(col int, v int) {
+	for y := 0; y < nrLine; y++ {
+		b.updateCandidate(y, col, v)
+	}
+}
+
+func (b *Board) updateCandidatesBlock(line int, col int, v int) {
+	yBlock := line - line%nrBlockLine
+	xBlock := col - col%nrBlockCol
+
+	for y := yBlock; y < yBlock+nrBlockCol; y++ {
+		for x := xBlock; x < xBlock+nrBlockLine; x++ {
+			b.updateCandidate(y, x, v)
+		}
+	}
+}
+
+func (b *Board) updateCandidates(line int, col int, v int) {
+	b.updateCandidatesLine(line, v)
+	b.updateCandidatesCol(col, v)
+	b.updateCandidatesBlock(line, col, v)
+}
+
+// Exclusivity if we have found the value V of a cell C then this
+// value is removed from all cases in the same block as C,
+// in other words we update the lines, the cols and the block boolean vectors.
+func (b *Board) Exclusivity() int {
+	nr := 0
+	for y, line := range b.cells {
+		for x, cell := range line {
+			if len(cell.candidates) == 1 {
+				for v := range cell.candidates {
+					b.set(y, x, v, excluCell)
+					b.updateCandidates(y, x, v)
+					nr++
+				}
+			}
+		}
+	}
+	return nr
+}
+
+// Backtracking Explore all valid possibilites for each
+// candidate of each cell to find a solution
+func (b *Board) Backtracking() {
 	for y, line := range b.cells {
 		for x, cell := range line {
 			if cell.val == 0 {
 				for v := range cell.candidates {
 					if b.isValidSet(y, x, v) {
 						b.set(y, x, v, candidateCell)
-						b.Solve()
+						b.Backtracking()
 						b.reset(y, x, v)
 					}
 				}
@@ -118,13 +177,14 @@ func (b *Board) Solve() {
 			}
 		}
 	}
-	b.Dump()
+	b.DumpBoard()
 }
 
-// Dump Debug function to dunmp a sudoku board
-func (b *Board) Dump() {
+// DumpBoard Debug function to dump a sudoku board
+func (b *Board) DumpBoard() {
 	red := color.New(color.FgRed)
 	blue := color.New(color.FgBlue)
+	yellow := color.New(color.FgYellow)
 
 	for y, line := range b.cells {
 		if y%3 == 0 {
@@ -139,6 +199,8 @@ func (b *Board) Dump() {
 					red.Print(cell.val, " ")
 				} else if cell.typeCell == candidateCell {
 					blue.Print(cell.val, " ")
+				} else if cell.typeCell == excluCell {
+					yellow.Print(cell.val, " ")
 				}
 			} else {
 				fmt.Print(". ")
@@ -147,4 +209,29 @@ func (b *Board) Dump() {
 		fmt.Println("|")
 	}
 	fmt.Println("-------------------------")
+	fmt.Println("")
+}
+
+// DumpCandidates Debug function to dump the candidates
+func (b *Board) DumpCandidates() {
+	blue := color.New(color.FgBlue)
+	yellow := color.New(color.FgYellow)
+
+	fmt.Println("number of candidates: ", b.nrCandidate)
+	for y, line := range b.cells {
+		yellow.Print("Y:", y, " ")
+		for x, cell := range line {
+			if len(cell.candidates) != 0 {
+				yellow.Print("X:", x)
+				fmt.Print("(")
+				for v := range cell.candidates {
+					blue.Print(v)
+					fmt.Print(",")
+				}
+				fmt.Print(") ")
+			}
+		}
+		fmt.Println("")
+	}
+	fmt.Println("")
 }
