@@ -19,14 +19,18 @@ func main() {
 	b := board.New(&simple1)
 	b.DumpBoard()
 	b.DumpCandidates()
-
-	for {
-		if nr := b.Exclusivity(); nr == 0 {
-			break
-		}
-	}
-
+	b.Exclusivity()
 	b.DumpBoard()
-	b.DumpCandidates()
-	b.Backtracking()
+	b.DumpStats()
+	// for {
+	// 	if nr := b.Exclusivity(); nr == 0 {
+	// 		break
+	// 	}
+	// 	b.DumpBoard()
+	// 	b.DumpCandidates()
+	// }
+
+	// b.DumpBoard()
+	// b.DumpCandidates()
+	// b.Backtracking()
 }

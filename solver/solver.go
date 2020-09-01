@@ -23,9 +23,14 @@ const (
 	excluCell
 )
 
+type coord struct {
+	y int
+	x int
+}
+
 type cell struct {
-	val        int // value of the cell
-	typeCell   int // type of the cell
+	val        int
+	typeCell   int
 	candidates map[int]struct{}
 }
 
@@ -35,7 +40,12 @@ type Board struct {
 	lines       [nrLine][nrVal]bool
 	cols        [nrCol][nrVal]bool
 	blocks      [nrBlock][nrVal]bool
-	nrCandidate uint
+	exclusivity []coord
+	// stats
+	nrInitVal       uint
+	nrInitCandidate uint
+	nrCandidate     uint
+	nrExclusivity   uint
 }
 
 func getBlockID(y int, x int) int {
@@ -71,6 +81,19 @@ func (c *cell) setCandidate(b *Board, y int, x int) {
 	}
 }
 
+func (b *Board) pushExclusivity(c *cell, y int, x int) {
+	if len(c.candidates) == 1 {
+		b.exclusivity = append(b.exclusivity, coord{y, x})
+	}
+}
+
+func (b *Board) popExclusivity() coord {
+	n := len(b.exclusivity) - 1
+	c := b.exclusivity[n]
+	b.exclusivity = b.exclusivity[:n]
+	return c
+}
+
 // SetCandidates find the potential
 // candidates for each cell of the board
 func (b *Board) setCandidates() {
@@ -78,9 +101,11 @@ func (b *Board) setCandidates() {
 		for x, cell := range line {
 			if b.cells[y][x].typeCell == emptyCell {
 				cell.setCandidate(b, y, x)
+				b.pushExclusivity(&cell, y, x)
 			}
 		}
 	}
+	b.nrInitCandidate = b.nrCandidate
 }
 
 // Init the board
@@ -90,6 +115,7 @@ func (b *Board) init(initialValues *[9][9]int) {
 			b.cells[y][x].candidates = make(map[int]struct{})
 			if v != 0 {
 				b.set(y, x, v, initialCell)
+				b.nrInitVal++
 			}
 		}
 	}
@@ -109,6 +135,7 @@ func (b *Board) updateCandidate(y int, x int, v int) {
 	if _, ok := cell.candidates[v]; ok {
 		delete(cell.candidates, v)
 		b.nrCandidate--
+		b.pushExclusivity(&cell, y, x)
 	}
 }
 
@@ -144,20 +171,19 @@ func (b *Board) updateCandidates(line int, col int, v int) {
 // Exclusivity if we have found the value V of a cell C then this
 // value is removed from all cases in the same block as C,
 // in other words we update the lines, the cols and the block boolean vectors.
-func (b *Board) Exclusivity() int {
-	nr := 0
-	for y, line := range b.cells {
-		for x, cell := range line {
-			if len(cell.candidates) == 1 {
-				for v := range cell.candidates {
-					b.set(y, x, v, excluCell)
-					b.updateCandidates(y, x, v)
-					nr++
-				}
-			}
+func (b *Board) Exclusivity() {
+	for {
+		coord := b.popExclusivity()
+		cell := b.cells[coord.y][coord.x]
+		for v := range cell.candidates {
+			b.set(coord.y, coord.x, v, excluCell)
+			b.updateCandidates(coord.y, coord.x, v)
+			b.nrExclusivity++
+		}
+		if len(b.exclusivity) == 0 {
+			break
 		}
 	}
-	return nr
 }
 
 // Backtracking Explore all valid possibilites for each
@@ -212,12 +238,18 @@ func (b *Board) DumpBoard() {
 	fmt.Println("")
 }
 
+// DumpStats Debug function to dump the stats
+func (b *Board) DumpStats() {
+	fmt.Println("number of initial values : ", b.nrInitVal)
+	fmt.Println("number of candidates     : ", b.nrInitCandidate)
+	fmt.Println("number of exclusivity    : ", b.nrExclusivity)
+}
+
 // DumpCandidates Debug function to dump the candidates
 func (b *Board) DumpCandidates() {
 	blue := color.New(color.FgBlue)
 	yellow := color.New(color.FgYellow)
 
-	fmt.Println("number of candidates: ", b.nrCandidate)
 	for y, line := range b.cells {
 		yellow.Print("Y:", y, " ")
 		for x, cell := range line {
