@@ -19,18 +19,10 @@ func main() {
 	b := board.New(&simple1)
 	b.DumpBoard()
 	b.DumpCandidates()
-	b.Exclusivity()
+	b.Uniqueness()
 	b.DumpBoard()
 	b.DumpStats()
-	// for {
-	// 	if nr := b.Exclusivity(); nr == 0 {
-	// 		break
-	// 	}
-	// 	b.DumpBoard()
-	// 	b.DumpCandidates()
-	// }
 
-	// b.DumpBoard()
-	// b.DumpCandidates()
+	//b.Exclusivity()
 	// b.Backtracking()
 }

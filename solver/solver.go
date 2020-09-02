@@ -1,11 +1,5 @@
 package solver
 
-import (
-	"fmt"
-
-	"github.com/fatih/color"
-)
-
 // Sudoku constants
 const (
 	nrLine      = 9
@@ -20,7 +14,8 @@ const (
 	emptyCell = iota
 	initialCell
 	candidateCell
-	excluCell
+	exclusivityCell
+	uniquenessCell
 )
 
 type coord struct {
@@ -41,11 +36,13 @@ type Board struct {
 	cols        [nrCol][nrVal]bool
 	blocks      [nrBlock][nrVal]bool
 	exclusivity []coord
-	// stats
+	nrCandidate uint
+	nrEmpty     uint
+	// statistics
 	nrInitVal       uint
 	nrInitCandidate uint
-	nrCandidate     uint
 	nrExclusivity   uint
+	nrUniqueness    uint
 }
 
 func getBlockID(y int, x int) int {
@@ -58,6 +55,7 @@ func (b *Board) set(y int, x int, v int, t int) {
 	b.lines[y][v-1] = true
 	b.cols[x][v-1] = true
 	b.blocks[getBlockID(y, x)][v-1] = true
+	b.nrEmpty--
 }
 
 func (b *Board) reset(y int, x int, v int) {
@@ -66,6 +64,7 @@ func (b *Board) reset(y int, x int, v int) {
 	b.lines[y][v-1] = false
 	b.cols[x][v-1] = false
 	b.blocks[getBlockID(y, x)][v-1] = false
+	b.nrEmpty++
 }
 
 func (b *Board) isValidSet(y int, x int, v int) bool {
@@ -79,19 +78,6 @@ func (c *cell) setCandidate(b *Board, y int, x int) {
 			b.nrCandidate++
 		}
 	}
-}
-
-func (b *Board) pushExclusivity(c *cell, y int, x int) {
-	if len(c.candidates) == 1 {
-		b.exclusivity = append(b.exclusivity, coord{y, x})
-	}
-}
-
-func (b *Board) popExclusivity() coord {
-	n := len(b.exclusivity) - 1
-	c := b.exclusivity[n]
-	b.exclusivity = b.exclusivity[:n]
-	return c
 }
 
 // SetCandidates find the potential
@@ -110,6 +96,7 @@ func (b *Board) setCandidates() {
 
 // Init the board
 func (b *Board) init(initialValues *[9][9]int) {
+	b.nrEmpty = nrCol * nrLine
 	for y, line := range initialValues {
 		for x, v := range line {
 			b.cells[y][x].candidates = make(map[int]struct{})
@@ -166,104 +153,4 @@ func (b *Board) updateCandidates(line int, col int, v int) {
 	b.updateCandidatesLine(line, v)
 	b.updateCandidatesCol(col, v)
 	b.updateCandidatesBlock(line, col, v)
-}
-
-// Exclusivity if we have found the value V of a cell C then this
-// value is removed from all cases in the same block as C,
-// in other words we update the lines, the cols and the block boolean vectors.
-func (b *Board) Exclusivity() {
-	for {
-		coord := b.popExclusivity()
-		cell := b.cells[coord.y][coord.x]
-		for v := range cell.candidates {
-			b.set(coord.y, coord.x, v, excluCell)
-			b.updateCandidates(coord.y, coord.x, v)
-			b.nrExclusivity++
-		}
-		if len(b.exclusivity) == 0 {
-			break
-		}
-	}
-}
-
-// Backtracking Explore all valid possibilites for each
-// candidate of each cell to find a solution
-func (b *Board) Backtracking() {
-	for y, line := range b.cells {
-		for x, cell := range line {
-			if cell.val == 0 {
-				for v := range cell.candidates {
-					if b.isValidSet(y, x, v) {
-						b.set(y, x, v, candidateCell)
-						b.Backtracking()
-						b.reset(y, x, v)
-					}
-				}
-				return
-			}
-		}
-	}
-	b.DumpBoard()
-}
-
-// DumpBoard Debug function to dump a sudoku board
-func (b *Board) DumpBoard() {
-	red := color.New(color.FgRed)
-	blue := color.New(color.FgBlue)
-	yellow := color.New(color.FgYellow)
-
-	for y, line := range b.cells {
-		if y%3 == 0 {
-			fmt.Println("-------------------------")
-		}
-		for x, cell := range line {
-			if x%3 == 0 {
-				fmt.Print("| ")
-			}
-			if cell.val != 0 {
-				if cell.typeCell == initialCell {
-					red.Print(cell.val, " ")
-				} else if cell.typeCell == candidateCell {
-					blue.Print(cell.val, " ")
-				} else if cell.typeCell == excluCell {
-					yellow.Print(cell.val, " ")
-				}
-			} else {
-				fmt.Print(". ")
-			}
-		}
-		fmt.Println("|")
-	}
-	fmt.Println("-------------------------")
-	fmt.Println("")
-}
-
-// DumpStats Debug function to dump the stats
-func (b *Board) DumpStats() {
-	fmt.Println("number of initial values : ", b.nrInitVal)
-	fmt.Println("number of candidates     : ", b.nrInitCandidate)
-	fmt.Println("number of exclusivity    : ", b.nrExclusivity)
-}
-
-// DumpCandidates Debug function to dump the candidates
-func (b *Board) DumpCandidates() {
-	blue := color.New(color.FgBlue)
-	yellow := color.New(color.FgYellow)
-
-	for y, line := range b.cells {
-		yellow.Print("Y:", y, " ")
-		for x, cell := range line {
-			if len(cell.candidates) != 0 {
-				yellow.Print("X:", x)
-				fmt.Print("(")
-				for v := range cell.candidates {
-					blue.Print(v)
-					fmt.Print(",")
-				}
-				fmt.Print(") ")
-			}
-		}
-		fmt.Println("")
-	}
-	fmt.Println("")
 }
