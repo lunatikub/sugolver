@@ -1,16 +1,35 @@
 # Sugolver
 SuGolVer is a Sudoku Golang Solver.
 
-For more details reqd this following [article](http://thomas-joly.com/index.php/2020/08/31/sugolver/).
+Detailed documentation available [here](http://thomas-joly.com/index.php/2020/08/31/sugolver/).
 
-## Build the binary sugolver
+## Build Sugolver
 
 ```sh
-go build .
+make sugolver
 ```
 
 ## Run the unit tests
 
 ```sh
-go test -v ./...
+make unit-test
+```
+
+## Run the tests
+
+```sh
+make test
+```
+
+## Sugolver usage
+
+```sh
+$ ./sugolver -h
+Usage of sugolver:
+  -grid string
+        grid to solve <1..34.5...6...7[....]>
+  -solution
+        dump the solution
+  -stats
+        dump the statistics
 ```
