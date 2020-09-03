@@ -1,21 +1,23 @@
 package solver
 
-// Backtracking Explore all valid possibilites for each
+// Explore all valid possibilites for each
 // candidate of each cell to find a solution
-func (s *Solver) Backtracking() {
+func (s *Solver) backtracking() bool {
 	for y, line := range s.grid {
 		for x, cell := range line {
 			if cell.val == 0 {
 				for v := range cell.candidates {
 					if s.isValidSet(y, x, v) {
 						s.set(y, x, v, candidateCell)
-						s.Backtracking()
+						if s.backtracking() {
+							return true // a solution has been found
+						}
 						s.reset(y, x, v)
 					}
 				}
-				return
+				return false // backtrack
 			}
 		}
 	}
-	s.DumpGrid()
+	return true
 }

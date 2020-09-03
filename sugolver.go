@@ -72,8 +72,10 @@ func main() {
 
 	s := solver.New(&grid)
 
+	s.Solve(false, false)
+
 	if opts.solution {
-		s.DumpGrid()
+		s.DumpSolution()
 	}
 	if opts.stats {
 		s.DumpStats()

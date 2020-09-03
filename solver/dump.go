@@ -70,3 +70,12 @@ func (s *Solver) DumpCandidates() {
 	}
 	fmt.Println("")
 }
+
+// DumpSolution Debug function to dump the solution
+func (s *Solver) DumpSolution() {
+	for _, line := range s.grid {
+		for _, cell := range line {
+			fmt.Print(cell.val)
+		}
+	}
+}

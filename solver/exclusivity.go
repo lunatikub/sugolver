@@ -2,21 +2,21 @@ package solver
 
 func (s *Solver) pushExclusivity(c *cell, y int, x int) {
 	if len(c.candidates) == 1 {
-		s.exclusivity = append(s.exclusivity, coord{y, x})
+		s.excluStack = append(s.excluStack, coord{y, x})
 	}
 }
 
 func (s *Solver) popExclusivity() coord {
-	n := len(s.exclusivity) - 1
-	c := s.exclusivity[n]
-	s.exclusivity = s.exclusivity[:n]
+	n := len(s.excluStack) - 1
+	c := s.excluStack[n]
+	s.excluStack = s.excluStack[:n]
 	return c
 }
 
-// Exclusivity if we have found the value V of a cell C then this
+// If we have found the value V of a cell C then this
 // value is removed from all cases in the same block as C,
 // in other words we update the lines, the cols and the block boolean vectors.
-func (s *Solver) Exclusivity() {
+func (s *Solver) exclusivity() {
 	for {
 		coord := s.popExclusivity()
 		cell := s.grid[coord.y][coord.x]
@@ -25,7 +25,7 @@ func (s *Solver) Exclusivity() {
 			s.updateCandidates(coord.y, coord.x, v)
 			s.nrExclusivity++
 		}
-		if len(s.exclusivity) == 0 {
+		if len(s.excluStack) == 0 {
 			break
 		}
 	}

@@ -38,7 +38,7 @@ type Solver struct {
 	lines       [NrLine][nrVal]bool
 	cols        [NrCol][nrVal]bool
 	blocks      [nrBlock][nrVal]bool
-	exclusivity []coord
+	excluStack  []coord
 	nrCandidate uint
 	nrEmpty     uint
 	// statistics
@@ -156,4 +156,21 @@ func (s *Solver) updateCandidates(line int, col int, v int) {
 	s.updateCandidatesLine(line, v)
 	s.updateCandidatesCol(col, v)
 	s.updateCandidatesBlock(line, col, v)
+}
+
+// Solve Resolver a Sudoku
+func (s *Solver) Solve(doExclu bool, doUniq bool) {
+	if doExclu {
+		s.exclusivity()
+	}
+	if s.nrEmpty == 0 {
+		return
+	}
+	if doUniq {
+		s.uniqueness()
+	}
+	if s.nrEmpty == 0 {
+		return
+	}
+	s.backtracking()
 }

@@ -41,10 +41,10 @@ func (s *Solver) uniquenessBlock(line int, col int, val int) bool {
 	return true
 }
 
-// Uniqueness if a cell C can contain several values, but one of these
+// if a cell C can contain several values, but one of these
 // values ​​V is not possible in any other cell of its line, columns or
 // block, then cell C contains the value V
-func (s *Solver) Uniqueness() {
+func (s *Solver) uniqueness() {
 	for y, line := range s.grid {
 		for x, cell := range line {
 			if cell.typeCell == emptyCell {
