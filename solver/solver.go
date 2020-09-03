@@ -2,8 +2,8 @@ package solver
 
 // Sudoku constants
 const (
-	nrLine      = 9
-	nrCol       = 9
+	NrLine      = 9
+	NrCol       = 9
 	nrBlock     = 9
 	nrVal       = 9
 	nrBlockLine = 3
@@ -18,6 +18,9 @@ const (
 	uniquenessCell
 )
 
+// Grid Sudoku 9x9 playing grid
+type Grid [NrLine][NrCol]int
+
 type coord struct {
 	y int
 	x int
@@ -29,11 +32,11 @@ type cell struct {
 	candidates map[int]struct{}
 }
 
-// Board playing 9x9 sudoku
-type Board struct {
-	cells       [nrCol][nrLine]cell
-	lines       [nrLine][nrVal]bool
-	cols        [nrCol][nrVal]bool
+// Solver Sudoku solver
+type Solver struct {
+	grid        [NrCol][NrLine]cell
+	lines       [NrLine][nrVal]bool
+	cols        [NrCol][nrVal]bool
 	blocks      [nrBlock][nrVal]bool
 	exclusivity []coord
 	nrCandidate uint
@@ -49,108 +52,108 @@ func getBlockID(y int, x int) int {
 	return x/nrBlockCol + (y/nrBlockLine)*nrBlockCol
 }
 
-func (b *Board) set(y int, x int, v int, t int) {
-	b.cells[y][x].val = v
-	b.cells[y][x].typeCell = t
-	b.lines[y][v-1] = true
-	b.cols[x][v-1] = true
-	b.blocks[getBlockID(y, x)][v-1] = true
-	b.nrEmpty--
+func (s *Solver) set(y int, x int, v int, t int) {
+	s.grid[y][x].val = v
+	s.grid[y][x].typeCell = t
+	s.lines[y][v-1] = true
+	s.cols[x][v-1] = true
+	s.blocks[getBlockID(y, x)][v-1] = true
+	s.nrEmpty--
 }
 
-func (b *Board) reset(y int, x int, v int) {
-	b.cells[y][x].val = 0
-	b.cells[y][x].typeCell = emptyCell
-	b.lines[y][v-1] = false
-	b.cols[x][v-1] = false
-	b.blocks[getBlockID(y, x)][v-1] = false
-	b.nrEmpty++
+func (s *Solver) reset(y int, x int, v int) {
+	s.grid[y][x].val = 0
+	s.grid[y][x].typeCell = emptyCell
+	s.lines[y][v-1] = false
+	s.cols[x][v-1] = false
+	s.blocks[getBlockID(y, x)][v-1] = false
+	s.nrEmpty++
 }
 
-func (b *Board) isValidSet(y int, x int, v int) bool {
-	return !b.lines[y][v-1] && !b.cols[x][v-1] && !b.blocks[getBlockID(y, x)][v-1]
+func (s *Solver) isValidSet(y int, x int, v int) bool {
+	return !s.lines[y][v-1] && !s.cols[x][v-1] && !s.blocks[getBlockID(y, x)][v-1]
 }
 
-func (c *cell) setCandidate(b *Board, y int, x int) {
+func (c *cell) setCandidate(s *Solver, y int, x int) {
 	for v := 0; v < nrVal; v++ {
-		if !b.lines[y][v] && !b.cols[x][v] && !b.blocks[getBlockID(y, x)][v] {
+		if !s.lines[y][v] && !s.cols[x][v] && !s.blocks[getBlockID(y, x)][v] {
 			c.candidates[v+1] = struct{}{}
-			b.nrCandidate++
+			s.nrCandidate++
 		}
 	}
 }
 
 // SetCandidates find the potential
-// candidates for each cell of the board
-func (b *Board) setCandidates() {
-	for y, line := range b.cells {
+// candidates for each cell of the grid
+func (s *Solver) setCandidates() {
+	for y, line := range s.grid {
 		for x, cell := range line {
-			if b.cells[y][x].typeCell == emptyCell {
-				cell.setCandidate(b, y, x)
-				b.pushExclusivity(&cell, y, x)
+			if cell.typeCell == emptyCell {
+				cell.setCandidate(s, y, x)
+				s.pushExclusivity(&cell, y, x)
 			}
 		}
 	}
-	b.nrInitCandidate = b.nrCandidate
+	s.nrInitCandidate = s.nrCandidate
 }
 
-// Init the board
-func (b *Board) init(initialValues *[9][9]int) {
-	b.nrEmpty = nrCol * nrLine
+// Init the grid
+func (s *Solver) init(initialValues *Grid) {
+	s.nrEmpty = NrCol * NrLine
 	for y, line := range initialValues {
 		for x, v := range line {
-			b.cells[y][x].candidates = make(map[int]struct{})
+			s.grid[y][x].candidates = make(map[int]struct{})
 			if v != 0 {
-				b.set(y, x, v, initialCell)
-				b.nrInitVal++
+				s.set(y, x, v, initialCell)
+				s.nrInitVal++
 			}
 		}
 	}
 
 }
 
-// New Create a new board with the initial values
-func New(initValues *[9][9]int) *Board {
-	b := new(Board)
-	b.init(initValues)
-	b.setCandidates()
-	return b
+// New Create a new grid with the initial values
+func New(initValues *Grid) *Solver {
+	s := new(Solver)
+	s.init(initValues)
+	s.setCandidates()
+	return s
 }
 
-func (b *Board) updateCandidate(y int, x int, v int) {
-	cell := b.cells[y][x]
+func (s *Solver) updateCandidate(y int, x int, v int) {
+	cell := s.grid[y][x]
 	if _, ok := cell.candidates[v]; ok {
 		delete(cell.candidates, v)
-		b.nrCandidate--
-		b.pushExclusivity(&cell, y, x)
+		s.nrCandidate--
+		s.pushExclusivity(&cell, y, x)
 	}
 }
 
-func (b *Board) updateCandidatesLine(line int, v int) {
-	for x := 0; x < nrCol; x++ {
-		b.updateCandidate(line, x, v)
+func (s *Solver) updateCandidatesLine(line int, v int) {
+	for x := 0; x < NrCol; x++ {
+		s.updateCandidate(line, x, v)
 	}
 }
 
-func (b *Board) updateCandidatesCol(col int, v int) {
-	for y := 0; y < nrLine; y++ {
-		b.updateCandidate(y, col, v)
+func (s *Solver) updateCandidatesCol(col int, v int) {
+	for y := 0; y < NrLine; y++ {
+		s.updateCandidate(y, col, v)
 	}
 }
 
-func (b *Board) updateCandidatesBlock(line int, col int, v int) {
+func (s *Solver) updateCandidatesBlock(line int, col int, v int) {
 	yBlock := line - line%nrBlockLine
 	xBlock := col - col%nrBlockCol
 
 	for y := yBlock; y < yBlock+nrBlockCol; y++ {
 		for x := xBlock; x < xBlock+nrBlockLine; x++ {
-			b.updateCandidate(y, x, v)
+			s.updateCandidate(y, x, v)
 		}
 	}
 }
 
-func (b *Board) updateCandidates(line int, col int, v int) {
-	b.updateCandidatesLine(line, v)
-	b.updateCandidatesCol(col, v)
-	b.updateCandidatesBlock(line, col, v)
+func (s *Solver) updateCandidates(line int, col int, v int) {
+	s.updateCandidatesLine(line, v)
+	s.updateCandidatesCol(col, v)
+	s.updateCandidatesBlock(line, col, v)
 }

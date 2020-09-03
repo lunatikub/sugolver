@@ -6,15 +6,15 @@ import (
 	"github.com/fatih/color"
 )
 
-// DumpBoard Debug function to dump a sudoku board
-func (b *Board) DumpBoard() {
-	red := color.New(color.FgRed)
-	blue := color.New(color.FgBlue)
-	yellow := color.New(color.FgYellow)
-	green := color.New(color.FgGreen)
+var red = color.New(color.FgRed)
+var blue = color.New(color.FgBlue)
+var yellow = color.New(color.FgYellow)
+var green = color.New(color.FgGreen)
 
-	fmt.Println("number of empty cell: ", b.nrEmpty)
-	for y, line := range b.cells {
+// DumpGrid Debug function to dump a Sudoku grid
+func (s *Solver) DumpGrid() {
+	fmt.Println("number of empty cell: ", s.nrEmpty)
+	for y, line := range s.grid {
 		if y%3 == 0 {
 			fmt.Println("-------------------------")
 		}
@@ -43,20 +43,17 @@ func (b *Board) DumpBoard() {
 }
 
 // DumpStats Debug function to dump the stats
-func (b *Board) DumpStats() {
-	fmt.Println("number of initial values : ", b.nrInitVal)
-	fmt.Println("number of candidates     : ", b.nrInitCandidate)
-	fmt.Println("number of exclusivity    : ", b.nrExclusivity)
-	fmt.Println("number of uniqueness     : ", b.nrUniqueness)
+func (s *Solver) DumpStats() {
+	fmt.Println("number of initial values : ", s.nrInitVal)
+	fmt.Println("number of candidates     : ", s.nrInitCandidate)
+	fmt.Println("number of exclusivity    : ", s.nrExclusivity)
+	fmt.Println("number of uniqueness     : ", s.nrUniqueness)
 }
 
 // DumpCandidates Debug function to dump the candidates
-func (b *Board) DumpCandidates() {
-	blue := color.New(color.FgBlue)
-	yellow := color.New(color.FgYellow)
-
-	fmt.Println("number of candidates: ", b.nrCandidate)
-	for y, line := range b.cells {
+func (s *Solver) DumpCandidates() {
+	fmt.Println("number of candidates: ", s.nrCandidate)
+	for y, line := range s.grid {
 		yellow.Print("Y:", y, " ")
 		for x, cell := range line {
 			if len(cell.candidates) != 0 {

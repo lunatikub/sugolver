@@ -18,44 +18,44 @@ func TestBlockID(t *testing.T) {
 	testBlockID(t, 8, 4, 7)
 }
 
-func testSet(t *testing.T, b *Board, y int, x int, v int) {
-	b.set(y, x, v, initialCell)
-	res := b.cells[y][x].val
+func testSet(t *testing.T, s *Solver, y int, x int, v int) {
+	s.set(y, x, v, initialCell)
+	res := s.grid[y][x].val
 	if res != v {
 		t.Errorf("Set/Get is incorrect, got: %d, expected: %d", res, v)
 	}
-	if b.lines[y][v-1] != true {
+	if s.lines[y][v-1] != true {
 		t.Errorf("Set of val %d is incorrect for the line:%d", v, y)
 	}
-	if b.cols[x][v-1] != true {
+	if s.cols[x][v-1] != true {
 		t.Errorf("Set of val %d is incorrect for the col:%d", v, x)
 	}
 	blockID := getBlockID(y, x)
-	if b.blocks[blockID][v-1] != true {
+	if s.blocks[blockID][v-1] != true {
 		t.Errorf("Set of val %d is incorrect for the block:%d", v, blockID)
 	}
 }
 
 func TestSet(t *testing.T) {
-	var b Board
-	testSet(t, &b, 3, 3, 1)
-	testSet(t, &b, 6, 5, 2)
-	testSet(t, &b, 3, 3, 2)
+	var s Solver
+	testSet(t, &s, 3, 3, 1)
+	testSet(t, &s, 6, 5, 2)
+	testSet(t, &s, 3, 3, 2)
 }
 
 func TestIsValid(t *testing.T) {
-	var b Board
-	if b.isValidSet(0, 0, 1) == false {
+	var s Solver
+	if s.isValidSet(0, 0, 1) == false {
 		t.Errorf("Valid set expected")
 	}
-	b.set(0, 0, 1, candidateCell)
-	if b.isValidSet(0, 1, 1) == true {
+	s.set(0, 0, 1, candidateCell)
+	if s.isValidSet(0, 1, 1) == true {
 		t.Errorf("Unvalid set expected")
 	}
-	if b.isValidSet(1, 0, 1) == true {
+	if s.isValidSet(1, 0, 1) == true {
 		t.Errorf("Unvalid set expected")
 	}
-	if b.isValidSet(1, 1, 1) == true {
+	if s.isValidSet(1, 1, 1) == true {
 		t.Errorf("Unvalid set expected")
 	}
 }

@@ -1,10 +1,10 @@
 package main
 
-import board "github.com/lunatikub/sugolver/solver"
+import solver "github.com/lunatikub/sugolver/solver"
 
 func main() {
 
-	var simple1 = [9][9]int{
+	var simple = solver.Grid{
 		{5, 0, 0, 0, 8, 3, 2, 0, 0},
 		{0, 4, 7, 0, 0, 5, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0, 9, 4},
@@ -16,13 +16,10 @@ func main() {
 		{0, 0, 3, 0, 5, 9, 0, 0, 0},
 	}
 
-	b := board.New(&simple1)
-	b.DumpBoard()
-	b.DumpCandidates()
-	b.Uniqueness()
-	b.DumpBoard()
-	b.DumpStats()
-
-	//b.Exclusivity()
-	// b.Backtracking()
+	s := solver.New(&simple)
+	s.DumpGrid()
+	s.DumpCandidates()
+	s.Uniqueness()
+	s.DumpGrid()
+	s.DumpStats()
 }
