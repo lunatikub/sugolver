@@ -17,6 +17,9 @@ func (s *Solver) popExclusivity() coord {
 // value is removed from all cases in the same block as C,
 // in other words we update the lines, the cols and the block boolean vectors.
 func (s *Solver) exclusivity() {
+	if len(s.excluStack) == 0 {
+		return
+	}
 	for {
 		coord := s.popExclusivity()
 		cell := s.grid[coord.y][coord.x]

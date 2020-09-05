@@ -46,6 +46,7 @@ type Solver struct {
 	nrInitCandidate uint
 	nrExclusivity   uint
 	nrUniqueness    uint
+	nrBacktracking  uint
 }
 
 func getBlockID(y int, x int) int {
@@ -160,17 +161,19 @@ func (s *Solver) updateCandidates(line int, col int, v int) {
 
 // Solve Resolver a Sudoku
 func (s *Solver) Solve(doExclu bool, doUniq bool) {
-	if doExclu {
-		s.exclusivity()
+	for {
+		nrEmpty := s.nrEmpty
+		if doExclu {
+			s.exclusivity()
+		}
+		if doUniq {
+			s.uniqueness()
+		}
+		if nrEmpty == s.nrEmpty || s.nrEmpty == 0 {
+			break
+		}
 	}
-	if s.nrEmpty == 0 {
-		return
+	if s.nrEmpty != 0 {
+		s.backtracking()
 	}
-	if doUniq {
-		s.uniqueness()
-	}
-	if s.nrEmpty == 0 {
-		return
-	}
-	s.backtracking()
 }

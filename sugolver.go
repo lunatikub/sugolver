@@ -32,30 +32,25 @@ func parseGrid(intput string) solver.Grid {
 	return grid
 }
 
-// var simple = solver.Grid{
-// 	{5, 0, 0, 0, 8, 3, 2, 0, 0},
-// 	{0, 4, 7, 0, 0, 5, 0, 0, 0},
-// 	{0, 0, 0, 0, 0, 0, 0, 9, 4},
-// 	{0, 0, 0, 6, 0, 0, 0, 0, 0},
-// 	{0, 0, 0, 0, 9, 7, 4, 6, 0},
-// 	{0, 0, 8, 2, 3, 0, 0, 0, 5},
-// 	{8, 0, 5, 7, 0, 6, 3, 0, 0},
-// 	{4, 0, 0, 0, 0, 0, 0, 0, 0},
-// 	{0, 0, 3, 0, 5, 9, 0, 0, 0},
-// }
-
 type options struct {
-	grid     string
-	solution bool
-	stats    bool
+	grid        string
+	dump        string
+	stats       bool
+	exclusivity bool
+	uniqueness  bool
+	parity      bool
+	pretty      bool
 }
 
 func getOptions() *options {
 	opts := new(options)
 
 	flag.StringVar(&opts.grid, "grid", "", "grid to solve <1..34.5...6...7[....]>")
-	flag.BoolVar(&opts.solution, "solution", false, "dump the solution")
+	flag.StringVar(&opts.dump, "dump", "", "dump the solution [solution, pretty]")
 	flag.BoolVar(&opts.stats, "stats", false, "dump the statistics")
+	flag.BoolVar(&opts.exclusivity, "exclusivity", false, "enable exclusivity")
+	flag.BoolVar(&opts.uniqueness, "uniqueness", false, "enable uniqueness")
+	flag.BoolVar(&opts.parity, "parity", false, "enable parity")
 
 	flag.Parse()
 
@@ -72,11 +67,16 @@ func main() {
 
 	s := solver.New(&grid)
 
-	s.Solve(false, false)
+	s.Solve(opts.exclusivity, opts.uniqueness)
 
-	if opts.solution {
-		s.DumpSolution()
+	if opts.dump != "" {
+		if opts.dump == "solution" {
+			s.DumpSolution()
+		} else if opts.dump == "pretty" {
+			s.DumpGrid()
+		}
 	}
+
 	if opts.stats {
 		s.DumpStats()
 	}

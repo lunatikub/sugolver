@@ -27,32 +27,54 @@ DIFFICULTIES="simple easy intermediate expert"
 NR_OK=0
 NR_KO=0
 
+do_sugolver()
+{
+    difficulty="$1"
+    grid="$2"
+    expected_solution="$3"
+    opt="$4"
+
+    [ "${opt}" == "" ] && opt="no option"
+    printf "  - ${opt}"
+
+    align=$((30 - ${#opt}))
+    for i in $(seq 1 ${align}); do echo -n " "; done
+
+    solution=$(${SUGOLVER} --grid ${grid} --dump=solution ${opt})
+
+    if [ "${solution}" != "${expected_solution}" ]
+    then
+        printf "${col[red]}[KO]${col[reset]}\n"
+        NR_KO=$((NR_KO + 1))
+        printf "Expected   : ${expected_solution}\n"
+        printf "Instead of : ${solution}\n"
+    else
+        printf "${col[green]}[OK]${col[reset]}\n"
+        NR_OK=$((NR_OK + 1))
+    fi
+}
+
 for d in ${DIFFICULTIES}
 do
-    printf "[difficulty] ${col[blue]}${d}${col[reset]}\n"
     for f in $(find ${SCRIPT_DIR}/grids/ -name "${d}*grid")
     do
-        printf "  [file] ${col[cyan]}$(basename ${f}) ${col[reset]}"
+        printf "+ Test[${col[cyan]}$(basename ${f})${col[reset]}]\n"
         grid=$(head -n1 ${f})
-        expected_solution=$(tail -n1 ${f})
-        solution=$(${SUGOLVER} --grid ${grid} --solution=true)
-        if [ "${solution}" = "${expected_solution}" ]
-        then
-            printf "${colr[green]}[OK]${col[reset]}\n"
-            NR_OK=$((NR_OK + 1))
-        else
-            printf "${col[red]}[KO]${col[reset]}\n"
-            NR_KO=$((NR_KO + 1))
-            printf "Expected   : ${expected_solution}\n"
-            printf "Instead of : ${solution}\n"
-            exit 1
-        fi
+        expected_solution=$(tail -n1 ${f})  
+
+        do_sugolver "${d}" "${grid}" "${expected_solution}" ""
+        for opt in exclusivity uniqueness
+        do
+            do_sugolver "${d}" "${grid}" "${expected_solution}" "${opt}"
+        done
     done
 done
 
 popd
 
+printf "\n${col[blue]}[[[ Results ]]]\n"
 echo "Test OK: ${NR_OK}"
 echo "Test KO: ${NR_KO}"
+printf "${col[reset]}"
 
 [ ${NR_KO} -eq  0 ] && exit 0 || exit 1

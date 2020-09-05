@@ -9,10 +9,12 @@ func (s *Solver) backtracking() bool {
 				for v := range cell.candidates {
 					if s.isValidSet(y, x, v) {
 						s.set(y, x, v, candidateCell)
+						s.nrBacktracking++
 						if s.backtracking() {
 							return true // a solution has been found
 						}
 						s.reset(y, x, v)
+						s.nrBacktracking--
 					}
 				}
 				return false // backtrack
