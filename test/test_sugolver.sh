@@ -1,9 +1,9 @@
 #!/bin/bash
 
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-ROOT_DIR=${SCRIPT_DIR}/..
+scriptDir=$(dirname "$(readlink -f "$0")")
+rootDir=${scriptDir}/..
 
-SUGOLVER=${ROOT_DIR}/sugolver
+sugolver=${rootDir}/sugolver
 
 declare -A col=(
     [reset]="\033[0m"
@@ -13,20 +13,20 @@ declare -A col=(
     [cyan]="\033[0;36m"
 )
 
-pushd "${ROOT_DIR}" || exit 1
+pushd "${rootDir}" || exit 1
 
-[ -f "${SUGOLVER}" ] && rm "${SUGOLVER}"
+[ -f "${sugolver}" ] && rm "${sugolver}"
 go build
-[ ! -f "${SUGOLVER}" ] &&
+[ ! -f "${sugolver}" ] &&
     echo "Error command: go build" 2>&1 &&
     exit 1
 
-DIFFICULTIES="simple easy intermediate expert"
+difficulties="simple easy intermediate expert"
 
-NR_OK=0
-NR_KO=0
+nrOK=0
+nrKO=0
 
-do_sugolver() {
+testGrid() {
     grid="$1"
     expected_solution="$2"
     opt="$3"
@@ -37,7 +37,7 @@ do_sugolver() {
     align=$((30 - ${#opt}))
     for _ in $(seq 1 ${align}); do echo -n " "; done
 
-    solution=$(${SUGOLVER} --grid "${grid}" --dump=solution "${opt}")
+    solution=$(${sugolver} --grid "${grid}" --dump=solution "${opt}")
 
     if [ "${solution}" != "${expected_solution}" ]; then
         echo -e "${col[red]}[KO]${col[reset]}"
@@ -50,24 +50,23 @@ do_sugolver() {
     fi
 }
 
-for d in ${DIFFICULTIES}; do
+for d in ${difficulties}; do
     while read -r line; do
         echo -e "+ Test[${col[cyan]}$(basename "${line}")${col[reset]}]"
         grid=$(head -n1 "${line}")
         expected_solution=$(tail -n1 "${line}")
 
-        do_sugolver "${grid}" "${expected_solution}" ""
+        testGrid "${grid}" "${expected_solution}" ""
         for opt in exclusivity uniqueness parity; do
-            do_sugolver "${grid}" "${expected_solution}" "${opt}"
+            testGrid "${grid}" "${expected_solution}" "${opt}"
         done
-    done < <(find "${SCRIPT_DIR}/grids/" -name "${d}*grid")
+    done < <(find "${scriptDir}/grids/" -name "${d}*grid")
 done
 
 popd || exit 1
 
 echo -e "\n${col[blue]}[[[ Results ]]]"
-echo "Test OK: ${NR_OK}"
-echo "Test KO: ${NR_KO}"
-echo "${col[reset]}"
+echo -e "Test OK: ${nrOK}"
+echo -e "Test KO: ${nrKO}${col[reset]}"
 
-[ ${NR_KO} -eq 0 ] && exit 0 || exit 1
+[ ${nrKO} -eq 0 ] && exit 0 || exit 1

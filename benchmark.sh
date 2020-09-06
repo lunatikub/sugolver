@@ -6,8 +6,7 @@ rootDir=${scriptDir}/..
 sugolver="${rootDir}/sugolver"
 [ ! -f "${sugolver}" ] && exit 1
 
-grids="simple1.grid easy1.grid intermediate1.grid expert1.grid"
-NR=200 # number of perf repeation
+NR=1000 # number of runs
 
 resPerf=$(mktemp -t "perf.XXXXXX")
 resStats=$(mktemp -t "stats.XXXXXX")
@@ -60,15 +59,16 @@ doSugolver() {
     [[ "${opts}" =~ "U" ]] && cmdOpts="${cmdOpts} --uniqueness"
     [[ "${opts}" =~ "P" ]] && cmdOpts="${cmdOpts} --parity"
 
-    ${cmd} "${cmdOpts}" --stats >"${resStats}"
-    perf stat -e cycles -r ${NR} "${cmd}" "${cmdOpts}" >"${resPerf}" 2>&1
+    ${cmd} ${cmdOpts} --stats >"${resStats}"
+    perf stat -e cycles -r ${NR} ${cmd} ${cmdOpts} >"${resPerf}" 2>&1
 }
 
 dumpCSV() {
     local name="$1"
     local opts="$2"
+    local difficulty="$3"
 
-    echo -n "$name;"
+    echo -n "$(basename "${name}");${difficulty};"
     [[ "${opts}" =~ "E" ]] && echo -n "true;" || echo -n "false;"
     [[ "${opts}" =~ "U" ]] && echo -n "true;" || echo -n "false;"
     [[ "${opts}" =~ "P" ]] && echo -n "true;" || echo -n "false;"
@@ -78,22 +78,27 @@ dumpCSV() {
 }
 
 doPerf() {
-    local grid
+    local grid="$1"
+    local difficulty="$2"
 
-    grid="$(head -n1 "${rootDir}/test/grids/${1}")"
+    grid="$(head -n1 "${grid}")"
     local cmd="${sugolver} --grid ${grid}"
 
     # exclusivity uniqueness parity
     for opts in "" "E" "U" "P" "EUP"; do
         doSugolver "${cmd}" "${opts}"
-        dumpCSV "$1" "${opts}"
+        dumpCSV "$1" "${opts}" "${difficulty}"
     done
 }
 
-echo "name;E;U;P;opt;cycles;time;nrE;nrU;nrP;nrB"
+echo "name;difficulty;E;U;P;opt;cycles;time;nrE;nrU;nrP;nrB"
 
-for g in ${grids}; do
-    doPerf "${g}"
+difficulties="simple easy intermediate expert"
+
+for d in ${difficulties}; do
+    while read -r grid; do
+        doPerf "${grid}" "${d}"
+    done < <(find "${rootDir}/test/grids/" -name "${d}*grid")
 done
 
 exit 0

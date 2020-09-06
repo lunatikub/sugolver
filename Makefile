@@ -1,7 +1,7 @@
 all: sugolver
 
 sugolver: 
-	go build -o sugovler
+	go build -o sugolver
 
 test:
 	./test/test_sugolver.sh
