@@ -9,4 +9,7 @@ test:
 unit-test:
 	go test -v ./...
 
-.PHONY: test unit-test sugolver
+clean:
+	rm sugovler
+
+.PHONY: test unit-test sugolver clean

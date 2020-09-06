@@ -20,6 +20,7 @@ func (s *Solver) parityCol(yCell int, xCell int) {
 		c := s.grid[y][xCell]
 		if y != yCell && len(c.candidates) == 2 {
 			if reflect.DeepEqual(cell.candidates, c.candidates) {
+				s.nrParity++
 				s.updateCol(&c, xCell, yCell, y)
 			}
 		}
@@ -42,6 +43,7 @@ func (s *Solver) parityLine(yCell int, xCell int) {
 		c := s.grid[yCell][x]
 		if x != xCell && len(c.candidates) == 2 {
 			if reflect.DeepEqual(cell.candidates, c.candidates) {
+				s.nrParity++
 				s.updateLine(&c, yCell, xCell, x)
 			}
 		}
@@ -70,6 +72,7 @@ func (s *Solver) parityBlock(yCell int, xCell int) {
 			c := s.grid[y][x]
 			if (x != xCell || y != yCell) && len(c.candidates) == 2 {
 				if reflect.DeepEqual(cell.candidates, c.candidates) {
+					s.nrParity++
 					s.updateBlock(&c, yBlock, xBlock, yCell, xCell, y, x)
 				}
 			}

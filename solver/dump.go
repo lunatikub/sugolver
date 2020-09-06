@@ -33,7 +33,7 @@ func (s *Solver) DumpGrid() {
 	red.Print("initial ")
 	blue.Print("backtracking ")
 	yellow.Print("exclusivity ")
-	green.Print("uniqueness ")
+	green.Print("uniqueness")
 	fmt.Println("]")
 
 	for y, line := range s.grid {
@@ -58,6 +58,7 @@ func (s *Solver) DumpStats() {
 	fmt.Println("number of candidates     : ", s.nrInitCandidate)
 	fmt.Println("number of exclusivity    : ", s.nrExclusivity)
 	fmt.Println("number of uniqueness     : ", s.nrUniqueness)
+	fmt.Println("number of parity         : ", s.nrParity)
 	fmt.Println("number of backtracking   : ", s.nrBacktracking)
 }
 

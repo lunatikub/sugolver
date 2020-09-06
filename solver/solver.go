@@ -46,6 +46,7 @@ type Solver struct {
 	nrInitCandidate uint
 	nrExclusivity   uint
 	nrUniqueness    uint
+	nrParity        uint
 	nrBacktracking  uint
 }
 
