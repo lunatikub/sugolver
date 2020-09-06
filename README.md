@@ -40,8 +40,7 @@ make test
 ## Sugolver usage
 
 ```sh
-$ ./sugolver.exe -h
-Usage of D:\git\sugolver\sugolver.exe:
+$ ./sugolver -h
   -dump string
         dump the grid [solution, pretty]
   -grid string
