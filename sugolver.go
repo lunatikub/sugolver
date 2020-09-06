@@ -67,7 +67,7 @@ func main() {
 
 	s := solver.New(&grid)
 
-	s.Solve(opts.exclusivity, opts.uniqueness)
+	s.Solve(opts.exclusivity, opts.uniqueness, opts.parity)
 
 	if opts.dump != "" {
 		if opts.dump == "solution" {

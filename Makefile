@@ -9,4 +9,4 @@ test:
 unit-test:
 	go test -v ./...
 
-.PHONY: test unit-test
+.PHONY: test unit-test sugolver

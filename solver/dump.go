@@ -33,7 +33,7 @@ func (s *Solver) DumpGrid() {
 	red.Print("initial ")
 	blue.Print("backtracking ")
 	yellow.Print("exclusivity ")
-	green.Println("uniqueness ")
+	green.Print("uniqueness ")
 	fmt.Println("]")
 
 	for y, line := range s.grid {

@@ -63,7 +63,7 @@ do
         expected_solution=$(tail -n1 ${f})  
 
         do_sugolver "${d}" "${grid}" "${expected_solution}" ""
-        for opt in exclusivity uniqueness
+        for opt in exclusivity uniqueness parity
         do
             do_sugolver "${d}" "${grid}" "${expected_solution}" "${opt}"
         done

@@ -160,7 +160,7 @@ func (s *Solver) updateCandidates(line int, col int, v int) {
 }
 
 // Solve Resolver a Sudoku
-func (s *Solver) Solve(doExclu bool, doUniq bool) {
+func (s *Solver) Solve(doExclu bool, doUniq bool, doParity bool) {
 	for {
 		nrEmpty := s.nrEmpty
 		if doExclu {
@@ -168,6 +168,9 @@ func (s *Solver) Solve(doExclu bool, doUniq bool) {
 		}
 		if doUniq {
 			s.uniqueness()
+		}
+		if doParity {
+			s.parity()
 		}
 		if nrEmpty == s.nrEmpty || s.nrEmpty == 0 {
 			break
